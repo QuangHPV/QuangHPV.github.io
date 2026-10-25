@@ -1,0 +1,318 @@
+---
+import { profile, experience, projects, education } from '../content';
+// Built at deploy time, so this is the date of the last publish.
+const updated = new Date().toLocaleDateString('en-GB', { month: 'short', year: 'numeric' });
+const photoUrl = profile.url.replace(/\/$/, '') + profile.photo;
+// Shown to people without JavaScript and to scrapers: "name [at] domain [dot] com"
+const emailText = `${profile.emailUser} [at] ${profile.emailDomain.replace(/\./g, ' [dot] ')}`;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{profile.name} | Research Portfolio</title>
+    <meta name="description" content={profile.description} />
+    <link rel="canonical" href={profile.url} />
+
+    <!-- Link preview (Slack, LinkedIn, iMessage, X) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={`${profile.name} | Research Portfolio`} />
+    <meta property="og:description" content={profile.description} />
+    <meta property="og:url" content={profile.url} />
+    <meta property="og:image" content={photoUrl} />
+    <meta name="twitter:card" content="summary" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Light by default. Set the saved theme before first paint so there is no flash. -->
+    <script is:inline>
+      var theme = 'light';
+      try { theme = localStorage.getItem('theme') || 'light'; } catch (e) {}
+      document.documentElement.dataset.theme = theme;
+    </script>
+
+    <style>
+      :root {
+        --bg: #ffffff;
+        --surface: #f6f7f9;
+        --text: #22262b;
+        --muted: #5d646c;
+        --line: #e3e6ea;
+        --accent: #c62828;
+        --accent-soft: rgba(198, 40, 40, 0.12);
+        --photo-radius: 50%; /* use 14px for a rounded square */
+        --photo-glow: 0 10px 28px -6px rgba(34, 38, 43, 0.34);
+        --warn: #9a5b00;
+        --warn-bg: #fff4de;
+        --body: 'Figtree', system-ui, -apple-system, 'Segoe UI', sans-serif;
+        --head: 'Plus Jakarta Sans', 'Figtree', system-ui, sans-serif;
+      }
+      :root[data-theme='dark'] {
+        --bg: #131416;
+        --surface: #1b1c1f;
+        --text: #e8e9eb;
+        --muted: #a2a7ae;
+        --line: #2b2d31;
+        --accent: #ff6b61;
+        --accent-soft: rgba(255, 107, 97, 0.16);
+        --photo-glow: 0 0 34px 2px rgba(255, 255, 255, 0.28);
+        --warn: #f0b95a;
+        --warn-bg: #2b2415;
+      }
+
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+      body {
+        margin: 0; background: var(--bg); color: var(--text);
+        font: 17px/1.7 var(--body); -webkit-font-smoothing: antialiased;
+        transition: background-color .25s, color .25s;
+      }
+      ::selection { background: var(--accent); color: #fff; }
+      a { color: var(--accent); text-decoration: none; }
+      a:hover { text-decoration: underline; text-underline-offset: 3px; }
+      :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 3px; }
+      .skip { position: absolute; left: -999px; top: 8px; background: var(--accent); color: #fff; padding: 6px 12px; border-radius: 4px; z-index: 20; }
+      .skip:focus { left: 8px; }
+      [hidden] { display: none !important; }
+      svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+
+      /* title bar */
+      .bar { position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+      .bar-in { max-width: 64rem; margin: 0 auto; padding: 0 24px; height: 60px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+      .brand { font: 700 1.05rem var(--head); color: var(--text); letter-spacing: -0.01em; }
+      .brand:hover { text-decoration: none; color: var(--accent); }
+      .bar nav { display: flex; align-items: center; gap: 4px; }
+      .bar nav a { color: var(--muted); font-size: 15px; font-weight: 500; padding: 6px 12px; border-radius: 6px; }
+      .bar nav a:hover { color: var(--text); background: var(--surface); text-decoration: none; }
+      .bar nav a.active { color: var(--accent); background: var(--accent-soft); }
+      #theme { background: none; border: 0; color: var(--muted); padding: 7px; border-radius: 6px; cursor: pointer; display: flex; margin-left: 4px; }
+      #theme:hover { color: var(--accent); background: var(--surface); }
+      .i-sun { display: none; }
+      [data-theme='dark'] .i-sun { display: block; }
+      [data-theme='dark'] .i-moon { display: none; }
+
+      /* page */
+      .layout { max-width: 64rem; margin: 0 auto; padding: 48px 24px 40px; display: grid; grid-template-columns: 14rem 1fr; gap: 0 64px; }
+
+      /* personal details */
+      aside { position: sticky; top: 108px; align-self: start; }
+      .photo { width: 100%; max-width: 10.5rem; aspect-ratio: 1; object-fit: cover; object-position: center 20%; border-radius: var(--photo-radius); display: block; background: #fff; border: 3px solid var(--bg); box-shadow: 0 0 0 1px var(--line), var(--photo-glow); }
+      .role { margin: 24px 0 8px; line-height: 1.4; }
+      .role strong { display: block; font: 700 1.05rem var(--head); letter-spacing: -0.01em; }
+      .role span { color: var(--muted); font-size: 15px; }
+      .status { display: flex; align-items: center; gap: 8px; margin: 0 0 16px; font-size: 13.5px; color: var(--muted); line-height: 1.4; }
+      .status i { width: 8px; height: 8px; border-radius: 50%; background: #2e9d57; box-shadow: 0 0 0 3px rgba(46, 157, 87, 0.2); flex-shrink: 0; }
+      .contact { list-style: none; padding: 0; margin: 0; font-size: 15px; display: grid; gap: 8px; }
+      .contact li { display: flex; align-items: center; gap: 10px; }
+      .contact li > svg { color: var(--muted); }
+      #copy { background: none; border: 0; padding: 4px; color: var(--muted); cursor: pointer; display: flex; border-radius: 4px; }
+      #copy:hover { color: var(--accent); background: var(--surface); }
+      .copied { display: flex; color: var(--accent); padding: 4px; }
+
+      /* main */
+      h1 { font: 800 2.15rem/1.2 var(--head); letter-spacing: -0.025em; margin: -6px 0 20px; }
+      h1 span { color: var(--accent); white-space: nowrap; }
+      main p { margin: 0 0 16px; }
+      .story :global(a) { text-decoration: none; color: var(--accent); font-weight: 500; }
+      .story :global(a:hover) { text-decoration: underline; text-underline-offset: 3px; }
+      .story :global(mark) { background: linear-gradient(transparent 58%, var(--accent-soft) 58%); color: inherit; font-weight: 500; padding: 0 1px; }
+      .nopubs { background: var(--surface); border-left: 3px solid var(--accent); padding: 12px 18px; border-radius: 0 8px 8px 0; margin-top: 24px; }
+
+      section { padding-top: 56px; }
+      h2 { font: 700 1.4rem/1.2 var(--head); letter-spacing: -0.015em; margin: 0 0 24px; display: flex; align-items: center; gap: 12px; }
+      h2::before { content: ''; width: 5px; height: 1.1em; background: var(--accent); border-radius: 3px; }
+
+      /* entries sit on a thin timeline: each line runs from its dot to the next dot */
+      .entry { position: relative; padding: 0 0 32px 30px; }
+      .entry:last-child { padding-bottom: 4px; }
+      .entry::before { content: ''; position: absolute; left: 0; top: 8px; width: 11px; height: 11px; transform: translateX(-50%); border-radius: 50%; background: var(--bg); border: 2px solid var(--muted); z-index: 1; }
+      .entry:not(:last-child)::after { content: ''; position: absolute; left: 0; top: 13.5px; bottom: -13.5px; width: 1px; transform: translateX(-50%); background: var(--line); }
+      .entry.current::before { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+      .list { margin-left: 6px; }
+      .top { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
+      .top h3 { font: 700 1.12rem/1.4 var(--head); margin: 0; }
+      .when { color: var(--muted); font-size: 14px; white-space: nowrap; flex-shrink: 0; font-variant-numeric: tabular-nums; }
+      .org { font-size: 15.5px; margin: 0 0 8px; color: var(--muted); }
+      .org a { font-weight: 600; }
+      .entry p { margin: 0; }
+      .unpub { display: inline-block; margin-left: 8px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--warn); background: var(--warn-bg); border-radius: 4px; padding: 1px 7px; vertical-align: 2px; }
+      .arrow { display: inline-block; transition: transform .15s; }
+      a:hover .arrow { transform: translate(2px, -2px); }
+      .note { color: var(--muted); font-size: 15.5px; }
+
+      footer { max-width: 64rem; margin: 24px auto 0; padding: 20px 24px 40px; border-top: 1px solid var(--line); color: var(--muted); font-size: 14px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+
+      @media (max-width: 760px) {
+        .bar-in { height: auto; padding: 10px 20px; flex-wrap: wrap; }
+        .bar nav { order: 3; width: 100%; overflow-x: auto; margin-left: -12px; }
+        .layout { grid-template-columns: 1fr; padding-top: 28px; }
+        aside { position: static; margin-bottom: 36px; display: grid; grid-template-columns: 7.5rem 1fr; gap: 0 22px; align-items: center; }
+        .photo { max-width: 7.5rem; box-shadow: 5px 5px 0 var(--accent-soft); }
+        .role { margin-top: 0; }
+        .photo { grid-row: 1 / span 2; }
+        h1 { font-size: 1.7rem; }
+        .top { flex-direction: column; gap: 0; }
+        .when { order: -1; }
+        footer { padding-left: 20px; padding-right: 20px; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * { transition: none !important; scroll-behavior: auto !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <a class="skip" href="#content">Skip to content</a>
+
+    <div class="bar">
+      <div class="bar-in">
+        <a class="brand" href="#about">{profile.name}</a>
+        <nav aria-label="Sections">
+          <a href="#about" class="active">About</a>
+          <a href="#research">Research</a>
+          <a href="#projects">Projects</a>
+          <a href="#education">Education</a>
+          <button id="theme" type="button" aria-label="Switch between light and dark mode">
+            <svg class="i-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
+            <svg class="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" /><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" /></svg>
+          </button>
+        </nav>
+      </div>
+    </div>
+
+    <div class="layout">
+      <aside>
+        {profile.photo && <img class="photo" src={profile.photo} alt={profile.name} />}
+        <div>
+          <p class="role">
+            <strong>{profile.role.lead}</strong>
+            <span>{profile.role.place}</span>
+          </p>
+          <p class="status"><i></i>{profile.role.status}</p>
+          <ul class="contact">
+            <li>
+              <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><path d="M22 6l-10 7L2 6" /></svg>
+              <a class="email" data-u={profile.emailUser} data-d={profile.emailDomain}>{emailText}</a>
+              <button id="copy" type="button" aria-label="Copy email address" hidden>
+                <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
+              </button>
+              <span class="copied" id="copied" hidden>
+                <svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5" /></svg>
+              </span>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" /></svg>
+              <a href={profile.github}>GitHub</a>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" /><rect x="2" y="9" width="4" height="12" /><circle cx="4" cy="4" r="2" /></svg>
+              <a href={profile.linkedin}>LinkedIn</a>
+            </li>
+          </ul>
+        </div>
+      </aside>
+
+      <main id="content">
+        <section id="about" class="story" style="padding-top:0">
+          <h1>{profile.headline[0]}<span>{profile.headline[1]}</span></h1>
+          {profile.story.map((t) => <p set:html={t} />)}
+          <p class="nopubs" set:html={profile.noPubs} />
+        </section>
+
+        <section id="research">
+          <h2>Research</h2>
+          <div class="list">
+            {experience.map((e) => (
+              <div class={e.current ? 'entry current' : 'entry'}>
+                <div class="top"><h3>{e.title}</h3><span class="when">{e.dates}</span></div>
+                <div class="org">
+                  <a href={e.orgHref}>{e.org}</a>, supervised by {e.advisors.map((a, i) => (
+                    <>{i > 0 && ', '}<a href={a.href}>{a.name}</a></>
+                  ))}
+                </div>
+                <p>
+                  {e.body}
+                  {e.unpublished && <span class="unpub" title="Not published yet">unpublished</span>}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section id="projects">
+          <h2>Projects</h2>
+          <div class="list">
+            {projects.map((p) => (
+              <div class="entry">
+                <div class="top"><h3>{p.title}</h3><span class="when">{p.date}</span></div>
+                <div class="org"><a href={p.href}>Code <span class="arrow">↗</span></a></div>
+                <p>{p.body}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section id="education">
+          <h2>Education</h2>
+          <div class="list">
+            {education.map((e) => (
+              <div class={e.current ? 'entry current' : 'entry'}>
+                <div class="top"><h3>{e.title}</h3><span class="when">{e.dates}</span></div>
+                <div class="org"><a href={e.href}>{e.school}</a></div>
+                {e.note && <p class="note">{e.note}</p>}
+              </div>
+            ))}
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <footer>
+      <span>© {profile.name}</span>
+      <span>Last updated {updated}</span>
+    </footer>
+
+    <script is:inline>
+      // Light / dark toggle
+      document.getElementById('theme').addEventListener('click', function () {
+        var next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+        document.documentElement.dataset.theme = next;
+        try { localStorage.setItem('theme', next); } catch (e) {}
+      });
+
+      // Build the email address in the browser, so it is not in the page source.
+      var mail = document.querySelector('.email');
+      var address = mail.dataset.u + '@' + mail.dataset.d;
+      mail.href = 'mailto:' + address;
+      mail.textContent = address;
+      document.querySelectorAll('a[data-mail]').forEach(function (a) { a.href = 'mailto:' + address; });
+      var copy = document.getElementById('copy');
+      var copied = document.getElementById('copied');
+      if (navigator.clipboard) {
+        copy.hidden = false;
+        copy.addEventListener('click', function () {
+          navigator.clipboard.writeText(address).then(function () {
+            copy.hidden = true;
+            copied.hidden = false;
+            setTimeout(function () { copied.hidden = true; copy.hidden = false; }, 1500);
+          });
+        });
+      }
+
+      // Highlight the current section in the title bar
+      var links = document.querySelectorAll('.bar nav a');
+      var spy = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          if (!en.isIntersecting) return;
+          links.forEach(function (l) { l.classList.toggle('active', l.hash === '#' + en.target.id); });
+        });
+      }, { rootMargin: '-30% 0px -60% 0px' });
+      document.querySelectorAll('main section').forEach(function (sec) { spy.observe(sec); });
+    </script>
+  </body>
+</html>
