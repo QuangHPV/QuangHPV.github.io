@@ -88,6 +88,7 @@ const emailText = `${profile.emailUser} [at] ${profile.emailDomain.replace(/\./g
       .bar-in { max-width: 64rem; margin: 0 auto; padding: 0 24px; height: 60px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
       .brand { font: 700 1.05rem var(--head); color: var(--text); letter-spacing: -0.01em; }
       .brand:hover { text-decoration: none; color: var(--accent); }
+      .tools { display: flex; align-items: center; gap: 4px; }
       .bar nav { display: flex; align-items: center; gap: 4px; }
       .bar nav a { color: var(--muted); font-size: 15px; font-weight: 500; padding: 6px 12px; border-radius: 6px; }
       .bar nav a:hover { color: var(--text); background: var(--surface); text-decoration: none; }
@@ -111,6 +112,7 @@ const emailText = `${profile.emailUser} [at] ${profile.emailDomain.replace(/\./g
       .status i { width: 8px; height: 8px; border-radius: 50%; background: #2e9d57; box-shadow: 0 0 0 3px rgba(46, 157, 87, 0.2); flex-shrink: 0; }
       .contact { list-style: none; padding: 0; margin: 0; font-size: 15px; display: grid; gap: 8px; }
       .contact li { display: flex; align-items: center; gap: 10px; }
+      .contact li > a { min-width: 0; overflow-wrap: anywhere; }
       .contact li > svg { color: var(--muted); }
       #copy { background: none; border: 0; padding: 4px; color: var(--muted); cursor: pointer; display: flex; border-radius: 4px; }
       #copy:hover { color: var(--accent); background: var(--surface); }
@@ -151,9 +153,13 @@ const emailText = `${profile.emailUser} [at] ${profile.emailDomain.replace(/\./g
 
       @media (max-width: 760px) {
         .bar-in { height: auto; padding: 10px 20px; flex-wrap: wrap; }
-        .bar nav { order: 3; width: 100%; overflow-x: auto; margin-left: -12px; }
-        .layout { grid-template-columns: 1fr; padding-top: 28px; }
-        aside { position: static; margin-bottom: 36px; display: grid; grid-template-columns: 7.5rem 1fr; gap: 0 22px; align-items: center; }
+        .tools { display: contents; }
+        .bar nav { order: 3; width: 100%; overflow-x: auto; margin-left: -10px; gap: 0; scrollbar-width: none; }
+        .bar nav a { padding: 6px 10px; }
+        #theme { margin-left: 0; }
+        /* minmax(0, ...) stops a long line from stretching the page past the screen */
+        .layout { grid-template-columns: minmax(0, 1fr); padding-top: 28px; }
+        aside { position: static; margin-bottom: 36px; display: grid; grid-template-columns: 7.5rem minmax(0, 1fr); gap: 0 22px; align-items: center; }
         .photo { max-width: 7.5rem; box-shadow: 5px 5px 0 var(--accent-soft); }
         .role { margin-top: 0; }
         .photo { grid-row: 1 / span 2; }
@@ -173,16 +179,18 @@ const emailText = `${profile.emailUser} [at] ${profile.emailDomain.replace(/\./g
     <div class="bar">
       <div class="bar-in">
         <a class="brand" href="#about">{profile.name}</a>
-        <nav aria-label="Sections">
-          <a href="#about" class="active">About</a>
-          <a href="#research">Research</a>
-          <a href="#projects">Projects</a>
-          <a href="#education">Education</a>
+        <div class="tools">
+          <nav aria-label="Sections">
+            <a href="#about" class="active">About</a>
+            <a href="#research">Research</a>
+            <a href="#projects">Projects</a>
+            <a href="#education">Education</a>
+          </nav>
           <button id="theme" type="button" aria-label="Switch between light and dark mode">
             <svg class="i-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
             <svg class="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" /><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" /></svg>
           </button>
-        </nav>
+        </div>
       </div>
     </div>
 
